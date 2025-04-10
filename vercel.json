@@ -6,20 +6,21 @@
       "use": "@vercel/next",
       "config": {
         "installCommand": "npm install --legacy-peer-deps",
-        "buildCommand": "NODE_OPTIONS='--max_old_space_size=4096' NEXT_DISABLE_SOURCEMAPS=1 npm run build",
-        "nodeVersion": "22.x"
+        "buildCommand": "NEXT_TELEMETRY_DISABLED=1 NODE_OPTIONS='--max_old_space_size=4096' npm run vercel-build",
+        "nodeVersion": "22.x",
+        "outputDirectory": ".next"
       }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/$1",
-      "continue": true
+      "dest": "/$1"
     }
   ],
   "env": {
     "NEXT_DISABLE_SENTRY": "1",
-    "NEXT_PUBLIC_DISABLE_ANALYTICS": "1"
+    "NEXT_PUBLIC_DISABLE_ANALYTICS": "1",
+    "NEXT_DISABLE_PRERENDER": "1"
   }
 } 
