@@ -101,13 +101,19 @@ export default function SettingsForm() {
       // Initialize form with typed settings
       setFormData(typedSettings);
 
+      // Type assertion for settings to include budget_items
+      const settingsWithBudgetItems = settings as unknown as { 
+        budget_items?: Array<{id: string, service: string, amount: number | ''}>,
+        budget?: number
+      };
+
       // Initialize budget items if they exist
-      if (settings?.budget_items && Array.isArray(settings.budget_items)) {
-        setBudgetItems(settings.budget_items as Array<{id: string, service: string, amount: number | ''}>);
-      } else if (settings?.budget) {
+      if (settingsWithBudgetItems.budget_items && Array.isArray(settingsWithBudgetItems.budget_items)) {
+        setBudgetItems(settingsWithBudgetItems.budget_items);
+      } else if (settingsWithBudgetItems.budget) {
         // Convert legacy single budget to budget item
         setBudgetItems([
-          { id: uuidv4(), service: 'General', amount: settings.budget as number }
+          { id: uuidv4(), service: 'General', amount: settingsWithBudgetItems.budget as number }
         ]);
       }
     } catch (err: any) {
