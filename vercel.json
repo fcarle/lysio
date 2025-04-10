@@ -6,15 +6,16 @@
       "use": "@vercel/next",
       "config": {
         "installCommand": "npm install --legacy-peer-deps",
-        "buildCommand": "NEXT_TELEMETRY_DISABLED=1 NODE_OPTIONS='--max_old_space_size=4096' npm run vercel-build",
+        "buildCommand": "NODE_ENV=production FORCE_RUNTIME_TAG=1 NEXT_TELEMETRY_DISABLED=1 NODE_OPTIONS='--max_old_space_size=4096' npm run vercel-build",
         "nodeVersion": "22.x",
-        "outputDirectory": ".next-prod"
+        "outputDirectory": ".next"
       }
     }
   ],
   "framework": "nextjs",
   "env": {
     "NEXT_DISABLE_SENTRY": "1",
-    "NEXT_PUBLIC_DISABLE_ANALYTICS": "1"
+    "NEXT_PUBLIC_DISABLE_ANALYTICS": "1",
+    "NEXT_DISABLE_PRERENDER": "1"
   }
 } 
