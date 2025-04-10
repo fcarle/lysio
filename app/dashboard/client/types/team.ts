@@ -1,5 +1,8 @@
 import type { Responsibility } from './services';
 
+// Re-export the Responsibility type for backward compatibility
+export { Responsibility };
+
 export type TeamMemberRole = 'owner' | 'admin' | 'member';
 export type TeamMemberStatus = 'pending' | 'active' | 'inactive';
 
