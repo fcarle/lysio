@@ -5,14 +5,20 @@ import { createClient } from '@supabase/supabase-js';
 // Initialize SendGrid with API key
 sgMail.setApiKey(process.env.SENDGRID_API_KEY || '');
 
+// Get environment variables with fallbacks
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://fallback-url-for-build.com';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'fallback-key-for-build';
+
 // Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(request: Request) {
   try {
+    // Validate environment variables at runtime
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error('Missing required environment variables for Supabase');
+    }
+    
     const { inviteeEmail, inviterEmail, invitationToken } = await request.json();
     
     // Get inviter's name and company name

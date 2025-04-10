@@ -104,12 +104,25 @@ export async function updateCompanySettings(settings: Partial<CompanySettings>) 
     return data;
   } else {
     // Insert new settings
+    if (!cleanSettings.name) {
+      throw new Error('Company name is required');
+    }
+
+    // Get user email if not provided
+    if (!cleanSettings.email) {
+      const userEmail = await getCurrentUserEmail();
+      cleanSettings.email = userEmail;
+    }
+
+    // Insert new settings with type assertion
     const { data, error } = await supabase
       .from('company_settings')
-      .insert([{
-        ...cleanSettings,
-        user_id: session.user.id
-      }])
+      .insert({
+        name: cleanSettings.name,
+        email: cleanSettings.email || '',
+        user_id: session.user.id,
+        ...cleanSettings
+      } as any)
       .select()
       .single();
 

@@ -55,15 +55,30 @@ export default function WorkPage() {
       if (error) throw error
 
       // Transform the data into our ClientRelationship format
-      const formattedRelationships = relationships.map(rel => ({
-        company_id: rel.company_id,
-        company_name: rel.companies?.name || 'Unknown Company',
-        role: rel.role,
-        status: rel.status,
-        permissions: rel.team_member_permissions.map(p => p.permission),
-        responsibilities: rel.team_member_responsibilities.map(r => r.responsibility),
-        last_active: rel.updated_at
-      }))
+      const formattedRelationships = relationships.map(rel => {
+        // Use type assertion to safely access company name
+        let companyName = 'Unknown Company';
+        
+        try {
+          if (Array.isArray(rel.companies)) {
+            companyName = rel.companies[0]?.name || 'Unknown Company';
+          } else if (rel.companies && typeof rel.companies === 'object') {
+            companyName = (rel.companies as any).name || 'Unknown Company';
+          }
+        } catch (e) {
+          console.error('Error parsing company name:', e);
+        }
+          
+        return {
+          company_id: rel.company_id,
+          company_name: companyName,
+          role: rel.role,
+          status: rel.status,
+          permissions: rel.team_member_permissions.map(p => p.permission),
+          responsibilities: rel.team_member_responsibilities.map(r => r.responsibility),
+          last_active: rel.updated_at
+        };
+      });
 
       setClientRelationships(formattedRelationships)
     } catch (error) {

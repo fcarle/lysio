@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Users, Network } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { getTeamMembers, isCompanyOwner, updateTeamMember } from '@/lib/supabase/team';
-import type { TeamMember, Responsibility } from '../types/team';
+import type { TeamMember, Responsibility, TeamMemberRole, TeamMemberStatus } from '../types/team';
 import InviteTeamMemberForm from '../components/InviteTeamMemberForm';
 import TeamMembersList from '../components/TeamMembersList';
 import TeamNetwork from '../components/TeamNetwork';
@@ -29,9 +29,32 @@ export default function TeamPage() {
   const loadTeamMembers = async () => {
     try {
       console.log('Starting to load team members...');
-      const members = await getTeamMembers();
-      console.log('Loaded team members:', members);
-      setTeamMembers(members);
+      const data = await getTeamMembers();
+      console.log('Loaded team members:', data);
+      
+      // Transform the data to match the TeamMember interface
+      // Use type assertion to ensure the data conforms to TeamMember[]
+      const formattedMembers = Array.isArray(data) ? data.map((item: any) => {
+        // Ensure each member has all required fields from TeamMember interface
+        const member: TeamMember = {
+          id: item.id || '',
+          company_id: item.company_id || '',
+          user_id: item.user_id,
+          role: (item.role || 'member') as TeamMemberRole,
+          email: item.email || '',
+          name: item.name || '',
+          status: (item.status || 'active') as TeamMemberStatus,
+          created_at: item.created_at || new Date().toISOString(),
+          updated_at: item.updated_at || new Date().toISOString(),
+          // Handle optional fields
+          permissions: item.permissions || [],
+          responsibilities: item.responsibilities || 
+            (item.team_member_responsibilities?.map((r: any) => r.responsibility_name) || [])
+        };
+        return member;
+      }) : [];
+      
+      setTeamMembers(formattedMembers);
     } catch (error) {
       console.error('Error loading team members:', error);
       toast.error('Failed to load team members');
@@ -166,6 +189,7 @@ export default function TeamPage() {
                 <TeamMembersList
                   teamMembers={teamMembers}
                   onUpdate={loadTeamMembers}
+                  onAssignService={handleAssignService}
                 />
               )}
             </CardContent>
