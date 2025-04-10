@@ -23,7 +23,9 @@ export async function POST(request: Request) {
       .single();
 
     const inviterName = inviterData?.name || 'Team Owner';
-    const companyName = inviterData?.companies?.name || 'your team';
+    const companyName = inviterData?.companies && Array.isArray(inviterData.companies) 
+      ? inviterData.companies[0]?.name || 'your team'
+      : 'your team';
     
     const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${invitationToken}`;
 
