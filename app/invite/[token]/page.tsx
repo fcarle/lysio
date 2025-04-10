@@ -1,22 +1,65 @@
-'use client';
-
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { redirect } from 'next/navigation';
+import { createClient } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'react-hot-toast';
-import { createClient } from '@supabase/supabase-js';
-import { redirect } from 'next/navigation';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+// Server action for form submission
+async function acceptInvitation(formData: FormData) {
+  'use server';
+  
+  const email = formData.get('email') as string;
+  const password = formData.get('password') as string;
+  const name = formData.get('name') as string;
+  const bio = formData.get('bio') as string;
+  const services = formData.get('services') as string;
+  const token = formData.get('token') as string;
+
+  // Create auth user
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email,
+    password,
+  });
+
+  if (authError) {
+    throw new Error(authError.message);
+  }
+
+  // Update team member record
+  const { error: updateError } = await supabase
+    .from('team_members')
+    .update({
+      user_id: authData.user?.id,
+      name,
+      bio,
+      services,
+      status: 'active',
+    })
+    .eq('email', email);
+
+  if (updateError) {
+    throw new Error(updateError.message);
+  }
+
+  // Delete invitation
+  await supabase
+    .from('team_invitations')
+    .delete()
+    .eq('token', token);
+
+  redirect('/dashboard/client');
+}
+
+// Main page component (server component)
 export default async function InvitePage({ params }: { params: { token: string } }) {
   const { data: invitation, error } = await supabase
     .from('team_invitations')
@@ -39,50 +82,6 @@ export default async function InvitePage({ params }: { params: { token: string }
     );
   }
 
-  async function acceptInvitation(formData: FormData) {
-    'use server';
-    
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    const name = formData.get('name') as string;
-    const bio = formData.get('bio') as string;
-    const services = formData.get('services') as string;
-
-    // Create auth user
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (authError) {
-      throw new Error(authError.message);
-    }
-
-    // Update team member record
-    const { error: updateError } = await supabase
-      .from('team_members')
-      .update({
-        user_id: authData.user?.id,
-        name,
-        bio,
-        services,
-        status: 'active',
-      })
-      .eq('email', email);
-
-    if (updateError) {
-      throw new Error(updateError.message);
-    }
-
-    // Delete invitation
-    await supabase
-      .from('team_invitations')
-      .delete()
-      .eq('token', params.token);
-
-    redirect('/dashboard/client');
-  }
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-2xl">
@@ -95,6 +94,7 @@ export default async function InvitePage({ params }: { params: { token: string }
         </CardHeader>
         <CardContent>
           <form action={acceptInvitation} className="space-y-6">
+            <input type="hidden" name="token" value={params.token} />
             <div className="space-y-4">
               <div>
                 <Label htmlFor="email">Email</Label>
