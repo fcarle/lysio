@@ -9,14 +9,15 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Use server components instead of static generation
-  output: 'export',
-  // Configure for pure client-side rendering
-  images: {
-    unoptimized: true,
+  // Use standalone mode for server-side rendering with dynamic routes
+  output: 'standalone',
+  // Configure for server-side rendering
+  experimental: {
+    // Disable static optimization
+    serverComponentsExternalPackages: ['@supabase/supabase-js']
   },
-  // Enable standalone mode for server components
-  trailingSlash: true,
+  // Skip generating 404 pages automatically
+  distDir: process.env.NODE_ENV === 'production' ? '.next-prod' : '.next',
 }
 
 module.exports = nextConfig 
