@@ -85,13 +85,21 @@ export default function SettingsForm() {
         getCurrentUserEmail()
       ]);
 
-      // Initialize form with email and default values
-      setFormData({
-        email: userEmail,
-        currency: 'USD',
-        budget_frequency: 'monthly' as BudgetFrequency,
-        ...settings // Spread settings if they exist
-      });
+      // Create a properly typed settings object
+      const typedSettings: Partial<CompanySettings> = {
+        ...settings,
+        email: userEmail || settings?.email,
+        currency: settings?.currency || 'USD',
+        // Ensure budget_frequency is always a valid BudgetFrequency value
+        budget_frequency: (settings?.budget_frequency === 'monthly' || 
+                         settings?.budget_frequency === 'quarterly' || 
+                         settings?.budget_frequency === 'yearly') 
+                         ? (settings.budget_frequency as BudgetFrequency)
+                         : ('monthly' as BudgetFrequency)
+      };
+      
+      // Initialize form with typed settings
+      setFormData(typedSettings);
 
       // Initialize budget items if they exist
       if (settings?.budget_items && Array.isArray(settings.budget_items)) {
